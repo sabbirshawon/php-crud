@@ -37,7 +37,7 @@ if(isset($_REQUEST['submit']) and $_REQUEST['submit']!=""){
 
 <!doctype html>
 
-<html lang="en-US" xmlns:fb="https://www.facebook.com/2008/fbml" xmlns:addthis="https://www.addthis.com/help/api-spec"  prefix="og: http://ogp.me/ns#" class="no-js">
+<html lang="en-US" class="no-js">
 
 <head>
 

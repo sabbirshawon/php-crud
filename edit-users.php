@@ -31,11 +31,12 @@ if(isset($_REQUEST['submit']) and $_REQUEST['submit']!=""){
 }
 ?>
 <!doctype html>
-<html lang="en-US" xmlns:fb="https://www.facebook.com/2008/fbml" xmlns:addthis="https://www.addthis.com/help/api-spec"  prefix="og: http://ogp.me/ns#" class="no-js">
+<html lang="en-US" class="no-js">
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-	<title>PHP CRUD in Bootstrap with search and pagination</title>
+	<title>PHP CRUD</>
+	
 	
 	<link rel="shortcut icon" href="https://demo.learncodeweb.com/favicon.ico">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css" integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
