@@ -1,12 +1,13 @@
 <?php
-class Database{
- 
+
+class Database
+{
     /**
      * database connection object
      * @var \PDO
      */
     protected $pdo;
- 
+
     /**
      * Connect to the database
      */
@@ -15,7 +16,7 @@ class Database{
         $this->pdo = $pdo;
         $this->pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
     }
- 
+
     /**
      * Return the pdo connection
      */
@@ -23,7 +24,7 @@ class Database{
     {
         return $this->pdo;
     }
- 
+
     /**
      * Changes a camelCase table or field name to lowercase,
      * underscore spaced name
@@ -35,7 +36,7 @@ class Database{
     {
         return strtolower(preg_replace('/([a-z])([A-Z])/', '$1_$2', $string));
     }
- 
+
     /**
      * Returns the ID of the last inserted row or sequence value
      *
@@ -46,7 +47,7 @@ class Database{
     {
         return $this->pdo->lastInsertId($param);
     }
- 
+
     /**
      * handler for dynamic CRUD methods
      *
@@ -65,19 +66,19 @@ class Database{
         if (! preg_match('/^(get|update|insert|delete)(.*)$/', $function, $matches)) {
             throw new \BadMethodCallException($function.' is an invalid method Call');
         }
- 
+
         if ('insert' == $matches[1]) {
             if (! is_array($params[0]) || count($params[0]) < 1) {
                 throw new \InvalidArgumentException('insert values must be an array');
             }
             return $this->insert($this->camelCaseToUnderscore($matches[2]), $params[0]);
         }
- 
+
         list($tableName, $fieldName) = explode('By', $matches[2], 2);
         if (! isset($tableName, $fieldName)) {
             throw new \BadMethodCallException($function.' is an invalid method Call');
         }
-         
+
         if ('update' == $matches[1]) {
             if (! is_array($params[1]) || count($params[1]) < 1) {
                 throw new \InvalidArgumentException('update fields must be an array');
@@ -88,14 +89,14 @@ class Database{
                 array($this->camelCaseToUnderscore($fieldName) => $params[0])
             );
         }
- 
+
         //select and delete method
         return $this->{$matches[1]}(
             $this->camelCaseToUnderscore($tableName),
             array($this->camelCaseToUnderscore($fieldName) => $params[0])
         );
     }
- 
+
     /**
      * Record retrieval method
      *
@@ -103,44 +104,41 @@ class Database{
      * @param  array      $where     (key is field name)
      * @return array|bool (associative array for single records, multidim array for multiple records)
      */
-    public function get($tableName,  $whereAnd  =   array(), $whereOr   =   array(), $whereLike =   array())
+    public function get($tableName, $whereAnd = array(), $whereOr = array(), $whereLike = array())
     {
-    $cond   =   '';
-    $s=1;
-    $params =   array();
-    foreach($whereAnd as $key => $val)
-    {
-        $cond   .=  " And ".$key." = :a".$s;
-        $params['a'.$s] = $val;
-        $s++;
-    }
-    foreach($whereOr as $key => $val)
-    {
-        $cond   .=  " OR ".$key." = :a".$s;
-        $params['a'.$s] = $val;
-        $s++;
-    }
-    foreach($whereLike as $key => $val)
-    {
-        $cond   .=  " OR ".$key." like '% :a".$s."%'";
-        $params['a'.$s] = $val;
-        $s++;
-    }
-    $stmt = $this->pdo->prepare("SELECT  $tableName.* FROM $tableName WHERE 1 ".$cond);
+        $cond   =   '';
+        $s=1;
+        $params =   array();
+        foreach ($whereAnd as $key => $val) {
+            $cond   .=  " And ".$key." = :a".$s;
+            $params['a'.$s] = $val;
+            $s++;
+        }
+        foreach ($whereOr as $key => $val) {
+            $cond   .=  " OR ".$key." = :a".$s;
+            $params['a'.$s] = $val;
+            $s++;
+        }
+        foreach ($whereLike as $key => $val) {
+            $cond   .=  " OR ".$key." like '% :a".$s."%'";
+            $params['a'.$s] = $val;
+            $s++;
+        }
+        $stmt = $this->pdo->prepare("SELECT  $tableName.* FROM $tableName WHERE 1 ".$cond);
         try {
             $stmt->execute($params);
             $res = $stmt->fetchAll();
-           
+
             if (! $res || count($res) != 1) {
-               return $res;
+                return $res;
             }
             return $res;
         } catch (\PDOException $e) {
             throw new \RuntimeException("[".$e->getCode()."] : ". $e->getMessage());
         }
     }
-     
-    public function getAllRecords($tableName, $fields='*', $cond='', $orderBy='', $limit='')
+
+    public function getAllRecords($tableName, $fields = '*', $cond = '', $orderBy = '', $limit = '')
     {
         //echo "SELECT  $tableName.$fields FROM $tableName WHERE 1 ".$cond." ".$orderBy." ".$limit;
         //print "<br>SELECT $fields FROM $tableName WHERE 1 ".$cond." ".$orderBy." ".$limit;
@@ -150,7 +148,7 @@ class Database{
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
         return $rows;
     }
-     
+
     public function getRecFrmQry($query)
     {
         //echo $query;
@@ -159,7 +157,7 @@ class Database{
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
         return $rows;
     }
-     
+
     public function getRecFrmQryStr($query)
     {
         //echo $query;
@@ -167,22 +165,22 @@ class Database{
         $stmt->execute();
         return array();
     }
-    public function getQueryCount($tableName, $field, $cond='')
+    public function getQueryCount($tableName, $field, $cond = '')
     {
         $stmt = $this->pdo->prepare("SELECT count($field) as total FROM $tableName WHERE 1 ".$cond);
         try {
             $stmt->execute();
             $res = $stmt->fetchAll(PDO::FETCH_ASSOC);
-           
+
             if (! $res || count($res) != 1) {
-               return $res;
+                return $res;
             }
             return $res;
         } catch (\PDOException $e) {
             throw new \RuntimeException("[".$e->getCode()."] : ". $e->getMessage());
         }
     }
-     
+
     /**
      * Update Method
      *
@@ -194,29 +192,29 @@ class Database{
     public function update($tableName, array $set, array $where)
     {
         $arrSet = array_map(
-           function($value) {
-                return $value . '=:' . $value;
-           },
-           array_keys($set)
-         );
-             
+            function ($value) {
+               return $value . '=:' . $value;
+            },
+            array_keys($set)
+        );
+
         $stmt = $this->pdo->prepare(
             "UPDATE $tableName SET ". implode(',', $arrSet).' WHERE '. key($where). '=:'. key($where) . 'Field'
-         );
- 
+        );
+
         foreach ($set as $field => $value) {
             $stmt->bindValue(':'.$field, $value);
         }
         $stmt->bindValue(':'.key($where) . 'Field', current($where));
         try {
             $stmt->execute();
- 
+
             return $stmt->rowCount();
         } catch (\PDOException $e) {
             throw new \RuntimeException("[".$e->getCode()."] : ". $e->getMessage());
         }
     }
- 
+
     /**
      * Delete Method
      *
@@ -229,21 +227,21 @@ class Database{
         $stmt = $this->pdo->prepare("DELETE FROM $tableName WHERE ".key($where) . ' = ?');
         try {
             $stmt->execute(array(current($where)));
- 
+
             return $stmt->rowCount();
         } catch (\PDOException $e) {
             throw new \RuntimeException("[".$e->getCode()."] : ". $e->getMessage());
         }
     }
-     
-     
+
+
     public function deleteQry($query)
     {
         $stmt = $this->pdo->prepare($query);
         $stmt->execute();
     }
- 
- 
+
+
     /**
      * Insert Method
      *
@@ -253,10 +251,11 @@ class Database{
      */
     public function insert($tableName, array $data)
     {
-        $stmt = $this->pdo->prepare("INSERT INTO $tableName (".implode(',', array_keys($data)).")
+        $stmt = $this->pdo->prepare(
+            "INSERT INTO $tableName (".implode(',', array_keys($data)).")
             VALUES (".implode(',', array_fill(0, count($data), '?')).")"
         );
-        try{
+        try {
             $stmt->execute(array_values($data));
             return $stmt->rowCount();
         } catch (\PDOException $e) {
@@ -266,9 +265,10 @@ class Database{
     /**
      * Print array Method
      *
-     * @param  array 
+     * @param  array
      */
-    public function arprint($array){
+    public function arprint($array)
+    {
         print"<pre>";
         print_r($array);
         print"</pre>";
@@ -277,9 +277,10 @@ class Database{
      * Maker Model Name Method
      *
      * @param  Int make id
-     * @param  Int name id 
+     * @param  Int name id
      */
-    public function getModelMake($makeID,$nameID){
+    public function getModelMake($makeID, $nameID)
+    {
         $vehMakeData    =   self::getRecFrmQry('SELECT veh_make_id,veh_make_name FROM tb_vehicle_make WHERE veh_make_id="'.$makeID.'"');
         $vehNameData    =   self::getRecFrmQry('SELECT veh_name_id,veh_name FROM tb_vehicle_name WHERE veh_name_id="'.$nameID.'"');
         return $vehMakeData[0]['veh_make_name'].' '.$vehNameData[0]['veh_name'];
@@ -288,25 +289,22 @@ class Database{
      * Cache Method
      *
      * @param  string QUERY
-     * @param  Int Time default 0 set 
+     * @param  Int Time default 0 set
      */
-    public function getCache($sql,$cache_min=0) {
-      $f = 'cache/'.md5($sql);
-      if ( $cache_min!=0 and file_exists($f) and ( (time()-filemtime($f))/60 < $cache_min ) ) {
-        $arr = unserialize(file_get_contents($f));
-      }
-      else {
-        unlink($f);
-        $arr = self::getRecFrmQry($sql);
-        if ($cache_min!=0) {
-          $fp = fopen($f,'w');
-          fwrite($fp,serialize($arr));
-          fclose($fp);
+    public function getCache($sql, $cache_min = 0)
+    {
+        $f = 'cache/'.md5($sql);
+        if ($cache_min!=0 and file_exists($f) and ((time()-filemtime($f))/60 < $cache_min)) {
+            $arr = unserialize(file_get_contents($f));
+        } else {
+            unlink($f);
+            $arr = self::getRecFrmQry($sql);
+            if ($cache_min!=0) {
+                $fp = fopen($f, 'w');
+                fwrite($fp, serialize($arr));
+                fclose($fp);
+            }
         }
-      }
-      return $arr;
+        return $arr;
     }
-     
-     
 }
-?>
